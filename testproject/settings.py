@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,7 +39,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'testapp',
-    'rest_framework'
+    'authenticationapp',
+    'rest_framework',
+    'rest_framework_simplejwt'
+
 ]
 
 MIDDLEWARE = [
@@ -123,3 +127,24 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# SIMPLE_JWT = {
+#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+
+#     # When set to True, if a refresh token is submitted to the TokenRefreshView, 
+#     # a new refresh token will be returned along with the new access token. 
+#     'ROTATE_REFRESH_TOKENS': False,
+
+#     'BLACKLIST_AFTER_ROTATION': False, # TODO Check the black list app later
+
+#     # When set to True, last_login field in the auth_user table is updated upon login
+#     'UPDATE_LAST_LOGIN': True,
+
+#     'ALGORITHM': 'HS256',
+#     'SIGNING_KEY': SECRET_KEY,# TODO Change it later on
+#     'VERIFYING_KEY': None,
+#     'AUDIENCE': None,
+
+# }

@@ -14,8 +14,9 @@ class Actor(models.Model):
     
 
 class Movie(models.Model):
-    actor=models.ForeignKey(Actor, on_delete=models.CASCADE)
-    movie_name=models.CharField(max_length=100)
+    actor=models.ForeignKey(Actor,related_name='movies', on_delete=models.CASCADE)
+    movie_name=models.CharField(max_length=10)
+    rating=models.IntegerField(default=5)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

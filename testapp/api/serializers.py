@@ -6,6 +6,12 @@ from collections import OrderedDict
 
 from rest_framework.exceptions import ErrorDetail, ValidationError
 
+class MovieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Movie
+        fields = ['id', 'movie_name','rating', 'created_at']
+
+
 class CustomActorListSerializer(serializers.ListSerializer):
     def __init__(self, *args, **kwargs):
         super(CustomActorListSerializer, self).__init__(*args, **kwargs)
@@ -61,21 +67,22 @@ class CustomActorListSerializer(serializers.ListSerializer):
 
 
 class ActorSerializer(serializers.ModelSerializer):
-    # override DRF fields
+    movies = MovieSerializer(many=True)
+    # override DRF fieldsactor
     errors = {}
     _errors = None
     validated_data = {}
     
 
     def validate(self, attrs):
-        self._errors={}
+        self._errors=[]
         # if actor_name is empty or not provided raise the custom error
         if not attrs.get("actor_name"):
-            self._errors.update({"actor_name": "Actor Name required"})
+            self._errors.append({"actor_name": "Actor Name required"})
             raise ValidationError(self._errors)
         
         elif isinstance(attrs.get("actor_name"), int):
-            self._errors.update({"actor_name": "Invalid Data Type"})
+            self._errors.append({"actor_name": "Invalid Data Type"})
             raise ValidationError(self._errors)
 
         
@@ -105,12 +112,45 @@ class ActorSerializer(serializers.ModelSerializer):
         model = Actor
         fields = '__all__'
         list_serializer_class="CustomActorListSerializer"
-       
+    
+    def create(self, validated_data):
+        movies_data = validated_data.pop('movies')
+        # print("actors:", validated_data)
+        actor = Actor.objects.create(**validated_data)
+        for movie in movies_data:
+            Movie.objects.create(actor=actor, **movie)
+        return actor
+    
+    def update(self, instance, validated_data):
+        movies_data=validated_data.pop('movies')
+        for movie in movies_data:
+            movie_pk=movie.pop('id', None)
+            if isinstance(movie_pk, int):
+                try:
+                    existing_movie=Movie.objects.get(id=movie_pk)
+                    for key, value in movie.items():
+                        setattr(existing_movie, key, value)
+                    existing_movie.save()
+                except Movie.DoesNotExist:
+                    raise ValidationError(
+                        [{
+                            "movies_id": "Movies ID {} Does not Exist!!!".format(movie_pk)
+                        }]
+                    )
+            else:
+                raise ValidationError(
+                    [{
+                        "movies_id": "Invalid DataType(id), Valid Datatype is: {}".format('Number')
+                    }]
+                )
+
+
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance
+
+
         
-class MovieSerializer(serializers.ModelSerializer):
-    class Meta:
-        model=Movie
-        fields = ['movie_name', 'created_at']
-        # extra_kwargs = {
-        #     'actor': {'write_only': True}
-        # }
